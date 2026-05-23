@@ -2,14 +2,15 @@ import { useState } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { setUser } from '../store/authSlice.js'
+import { useToast } from '../hooks/useToast.js'
 import * as api from '../api.js'
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useDispatch()
+  const toast    = useToast()
   const [formData, setFormData] = useState({ email: '', password: '' })
-  const [error,    setError]    = useState('')
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -17,7 +18,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
     try {
       const data = await api.login({ email: formData.email, password: formData.password })
       localStorage.setItem('academy_token', data.token)
@@ -25,12 +25,12 @@ export default function Login() {
 
       if (data.user.role === 'admin') {
         navigate('/admin', { replace: true })
-      } else {  
+      } else {
         const from = location.state?.from
         navigate(from ?? '/my-courses', { replace: true })
       }
     } catch (err) {
-      setError(err.message)
+      toast(err.message, 'error')
     }
   }
 
@@ -67,8 +67,6 @@ export default function Login() {
             onChange={handleChange}
           />
         </div>
-
-        {error && <div className="message-banner">{error}</div>}
 
         <button className="button button-primary" type="submit">Log In</button>
         <p>Don't have an account? <Link to="/register">Register</Link></p>

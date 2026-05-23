@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useToast } from '../hooks/useToast.js'
 import * as api from '../api.js'
 
 export default function Register() {
   const navigate = useNavigate()
+  const toast    = useToast()
   const [formData, setFormData] = useState({ email: '', password: '' })
-  const [error,    setError]    = useState('')
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -13,12 +14,11 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
     try {
       await api.register({ ...formData, role: 'student' })
       navigate('/login', { replace: true })
     } catch (err) {
-      setError(err.message)
+      toast(err.message, 'error')
     }
   }
 
@@ -55,8 +55,6 @@ export default function Register() {
             onChange={handleChange}
           />
         </div>
-
-        {error && <div className="message-banner">{error}</div>}
 
         <button className="button button-primary" type="submit">Register</button>
         <p>Already have an account? <Link to="/login">Log in</Link></p>

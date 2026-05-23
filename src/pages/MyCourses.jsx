@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { unenrolled } from '../store/dataSlice.js'
 import ConfirmModal from '../components/ConfirmModal'
+import { useToast } from '../hooks/useToast.js'
 import * as api from '../api.js'
 
 export default function MyCourses() {
   const dispatch    = useDispatch()
+  const toast       = useToast()
   const user        = useSelector((state) => state.auth.user)
   const courses     = useSelector((state) => state.data.courses)
   const teachers    = useSelector((state) => state.data.teachers)
@@ -14,7 +16,6 @@ export default function MyCourses() {
   const enrolledIds = useSelector((state) => state.data.enrolledIds)
 
   const [confirmCourseId, setConfirmCourseId] = useState(null)
-  const [notice, setNotice] = useState('')
 
   const enrolled = courses.filter((c) => enrolledIds.includes(c.id))
 
@@ -23,7 +24,7 @@ export default function MyCourses() {
     await api.unenroll(user.id, confirmCourseId)
     dispatch(unenrolled(confirmCourseId))
     setConfirmCourseId(null)
-    setNotice('You have been removed from the course.')
+    toast('You have been removed from the course.', 'info')
   }
 
   if (!enrolled.length) {
@@ -39,13 +40,6 @@ export default function MyCourses() {
   return (
     <section className="page-section">
       <h1>My Courses</h1>
-
-      {notice && (
-        <div className="message-banner success" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {notice}
-          <button type="button" onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
-        </div>
-      )}
 
       <div className="grid grid-courses">
         {enrolled.map((course) => {

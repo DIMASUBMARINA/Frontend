@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import ToastContainer from './components/ToastContainer'
 import { useAppInit } from './hooks/useAppInit.js'
 import Admin from './pages/Admin'
 import Courses from './pages/Courses'
@@ -57,6 +58,7 @@ export default function App() {
           <Route element={<Navigate replace to="/" />} path="*" />
         </Routes>
       </main>
+      <ToastContainer />
     </div>
   )
 }

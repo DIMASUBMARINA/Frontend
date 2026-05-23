@@ -1,19 +1,18 @@
-import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { enrolled } from '../store/dataSlice.js'
+import { useToast } from '../hooks/useToast.js'
 import * as api from '../api.js'
 
 export default function CourseDetails() {
   const { courseId } = useParams()
   const dispatch    = useDispatch()
+  const toast       = useToast()
   const user        = useSelector((state) => state.auth.user)
   const courses     = useSelector((state) => state.data.courses)
   const teachers    = useSelector((state) => state.data.teachers)
   const categories  = useSelector((state) => state.data.categories)
   const enrolledIds = useSelector((state) => state.data.enrolledIds)
-
-  const [feedback, setFeedback] = useState('')
 
   const course = courses.find((c) => c.id === courseId)
 
@@ -32,15 +31,15 @@ export default function CourseDetails() {
   const category   = categories.find((c) => c.id === course.categoryId)
 
   const onEnroll = async () => {
-    if (!user)                           return setFeedback('Login first.')
-    if (user.role !== 'student')         return setFeedback('Enrollment is available only to the students.')
-    if (enrolledIds.includes(course.id)) return setFeedback('You already enrolled in this course.')
+    if (!user)                           return toast('Login first.', 'info')
+    if (user.role !== 'student')         return toast('Enrollment is available only to the students.', 'info')
+    if (enrolledIds.includes(course.id)) return toast('You already enrolled in this course.', 'info')
     try {
       await api.enroll(user.id, course.id)
       dispatch(enrolled(course.id))
-      setFeedback('Course added to MyCourses.')
+      toast('Course added to MyCourses.', 'success')
     } catch (err) {
-      setFeedback(err.message || 'Enrollment failed.')
+      toast(err.message || 'Enrollment failed.', 'error')
     }
   }
 
@@ -105,8 +104,6 @@ export default function CourseDetails() {
               </button>
             </>
           )}
-
-          {feedback && <div className="message-banner success">{feedback}</div>}
         </section>
       </aside>
     </div>
