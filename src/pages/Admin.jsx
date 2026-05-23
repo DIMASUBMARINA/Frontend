@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import ConfirmModal from '../components/ConfirmModal'
-import { useToast } from '../hooks/useToast.js'
 import {
   courseAdded, courseUpdated, courseRemoved,
   teacherAdded, teacherUpdated, teacherRemoved,
@@ -31,7 +30,6 @@ function getEmptyCategoryForm() {
 
 export default function Admin() {
   const dispatch = useDispatch()
-  const toast    = useToast()
   const courses    = useSelector((state) => state.data.courses)
   const teachers   = useSelector((state) => state.data.teachers)
   const categories = useSelector((state) => state.data.categories)
@@ -44,6 +42,7 @@ export default function Admin() {
   const [editingTeacherId,  setEditingTeacherId]  = useState(null)
   const [editingCategoryId, setEditingCategoryId] = useState(null)
 
+  const [notice,  setNotice]  = useState('')
   const [confirm, setConfirm] = useState(null)
 
   useEffect(() => {
@@ -77,15 +76,15 @@ export default function Admin() {
       if (editingCourseId) {
         const course = await api.updateCourse(editingCourseId, payload)
         dispatch(courseUpdated(course))
-        toast('Course updated.', 'success')
+        setNotice('Course updated.')
       } else {
         const course = await api.createCourse(payload)
         dispatch(courseAdded(course))
-        toast('Course added.', 'success')
+        setNotice('Course added.')
       }
       resetCourseForm()
     } catch (err) {
-      toast(err.message || 'Error saving course.', 'error')
+      setNotice(err.message || 'Error saving course.')
     }
   }
 
@@ -96,15 +95,15 @@ export default function Admin() {
       if (editingTeacherId) {
         const teacher = await api.updateTeacher(editingTeacherId, payload)
         dispatch(teacherUpdated(teacher))
-        toast('Teacher updated.', 'success')
+        setNotice('Teacher updated.')
       } else {
         const teacher = await api.createTeacher(payload)
         dispatch(teacherAdded(teacher))
-        toast('Teacher added.', 'success')
+        setNotice('Teacher added.')
       }
       resetTeacherForm()
     } catch (err) {
-      toast(err.message || 'Error saving teacher.', 'error')
+      setNotice(err.message || 'Error saving teacher.')
     }
   }
 
@@ -114,15 +113,15 @@ export default function Admin() {
       if (editingCategoryId) {
         const category = await api.updateCategory(editingCategoryId, categoryForm)
         dispatch(categoryUpdated(category))
-        toast('Category updated.', 'success')
+        setNotice('Category updated.')
       } else {
         const category = await api.createCategory(categoryForm)
         dispatch(categoryAdded(category))
-        toast('Category added.', 'success')
+        setNotice('Category added.')
       }
       resetCategoryForm()
     } catch (err) {
-      toast(err.message || 'Error saving category.', 'error')
+      setNotice(err.message || 'Error saving category.')
     }
   }
 
@@ -155,6 +154,13 @@ export default function Admin() {
         <h1>Admin Panel</h1>
         <p>Manage courses, teachers and categories.</p>
       </section>
+
+      {notice && (
+        <div className="message-banner success" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {notice}
+          <button type="button" onClick={() => setNotice('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>✕</button>
+        </div>
+      )}
 
       <section className="admin-section">
         <div className="section-heading">
@@ -408,9 +414,9 @@ export default function Admin() {
                 await api.deleteCategory(confirm.id)
                 dispatch(categoryRemoved(confirm.id))
               }
-              toast('Deleted successfully.', 'success')
+              setNotice('Deleted successfully.')
             } catch (err) {
-              toast(err.message || 'Delete failed.', 'error')
+              setNotice(err.message || 'Delete failed.')
             }
             setConfirm(null)
           }}

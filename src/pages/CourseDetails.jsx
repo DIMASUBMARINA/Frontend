@@ -3,6 +3,9 @@ import { useSelector, useDispatch } from 'react-redux'
 import { enrolled } from '../store/dataSlice.js'
 import { useToast } from '../hooks/useToast.js'
 import * as api from '../api.js'
+import ConfirmModal from '../components/ConfirmModal'
+import { unenrolled } from '../store/dataSlice.js'
+import { useState } from 'react'
 
 export default function CourseDetails() {
   const { courseId } = useParams()
@@ -15,6 +18,16 @@ export default function CourseDetails() {
   const enrolledIds = useSelector((state) => state.data.enrolledIds)
 
   const course = courses.find((c) => c.id === courseId)
+  const [confirmCourseId, setConfirmCourseId] = useState(null)
+
+    const handleUnenroll = async () => {
+      if (!user?.id || !confirmCourseId) return
+      await api.unenroll(user.id, confirmCourseId)
+      dispatch(unenrolled(confirmCourseId))
+      setConfirmCourseId(null)
+      toast('You have been removed from the course.', 'info')
+    }
+
 
   if (!course) {
     return (
@@ -95,17 +108,23 @@ export default function CourseDetails() {
             <>
               <p>Enroll to add this course to My Courses.</p>
               <button
-                className="button button-primary"
-                disabled={isEnrolled}
-                onClick={onEnroll}
+                className={`button ${isEnrolled ? 'button-danger' : 'button-primary'}`}
+                onClick={isEnrolled ? () => setConfirmCourseId(course.id) : onEnroll}
                 type="button"
               >
-                {isEnrolled ? 'Already enrolled' : 'Enroll'}
+                {isEnrolled ? 'Remove' : 'Enroll'}
               </button>
             </>
           )}
         </section>
       </aside>
+        {confirmCourseId && (
+          <ConfirmModal
+            message={`You will be unenrolled from "${courses.find((c) => c.id === confirmCourseId)?.name}". This action cannot be undone.`}
+            onCancel={() => setConfirmCourseId(null)}
+            onConfirm={handleUnenroll}
+          />
+        )}
     </div>
   )
 }
